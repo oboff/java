@@ -8,8 +8,13 @@ public class Main {
         p.addPerson("Julie", 34, Person.Sex.FEMALE);
         p.addPerson("Tom", 12, Person.Sex.MALE);
         p.addPerson("Alex", 24, Person.Sex.MALE);
+        p.addPerson("Michelle", 21, Person.Sex.FEMALE);
 
-        p.checkPerson();
-
+        Person.printRoster();
+//        p.checkPerson();
+//        p.checkPerson2();
+//        p.checkPerson3();
+//        p.checkPerson4();
+        p.checkPerson5();
     }
 }
