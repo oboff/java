@@ -1,14 +1,16 @@
 import java.time.LocalDate;
+import java.time.chrono.IsoChronology;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * Created by orlan_000 on 5/2/2015.
  */
 
-public class Person {
+public class Person implements Relatable{
     public Person() {}
     public Person(String name, int age, Sex gender) {
         this.name = name;
@@ -24,35 +26,130 @@ public class Person {
     LocalDate birthday;
     Sex gender;
     String emailAddress;
-    int age;
 
-    public static List<Person> roster = new ArrayList<>();
-    public static void printRoster() {
-        System.out.println("***BEGIN ROSTER***");
-        for (Person p : roster) {
-            p.printPerson();
-        }
-        System.out.println("***END ROSTER***");
+    Person(String nameArg, LocalDate birthdayArg,
+           Sex genderArg, String emailArg) {
+        name = nameArg;
+        birthday = birthdayArg;
+        gender = genderArg;
+        emailAddress = emailArg;
     }
+
+    public int isLargerThan(Relatable other) {
+        Person otro = (Person)other;
+        return this.getAge() - otro.getAge();
+    }
+
     public int getAge() {
-        // ...
-        return age;
+        return birthday
+                .until(IsoChronology.INSTANCE.dateNow())
+                .getYears();
+    }
+
+    public void printPerson() {
+        System.out.println(name + ", " + this.getAge());
+    }
+
+    public Sex getGender() {
+        return gender;
     }
 
     public String getName() {
         return name;
     }
 
-    private Sex getGender() {
-        return gender;
+    public String getEmailAddress() {
+        return emailAddress;
     }
 
-    public void printPerson() {
-        System.out.println(this.getName() + " " + this.getAge() + " " + this.getGender());
+    public LocalDate getBirthday() {
+        return birthday;
     }
+
+    public static int compareByAge(Person a, Person b) {
+        return a.birthday.compareTo(b.birthday);
+    }
+
+    public static List<Person> createRoster() {
+
+        List<Person> roster = new ArrayList<>();
+        roster.add(
+                new Person(
+                        "Fred",
+                        IsoChronology.INSTANCE.date(1980, 6, 20),
+                        Person.Sex.MALE,
+                        "fred@example.com"));
+        roster.add(
+                new Person(
+                        "Jane",
+                        IsoChronology.INSTANCE.date(1990, 7, 15),
+                        Person.Sex.FEMALE, "jane@example.com"));
+        roster.add(
+                new Person(
+                        "George",
+                        IsoChronology.INSTANCE.date(1991, 8, 13),
+                        Person.Sex.MALE, "george@example.com"));
+        roster.add(
+                new Person(
+                        "Bob",
+                        IsoChronology.INSTANCE.date(2000, 9, 12),
+                        Person.Sex.MALE, "bob@example.com"));
+
+        return roster;
+    }
+    int age;
+
+    public static List<Person> rosterList = new ArrayList<>();
+    public void printRoster() {
+        System.out.println("***BEGIN ROSTER***");
+        for (Person p : rosterList) {
+            p.printPerson2();
+        }
+        System.out.println("***END ROSTER***");
+    }
+
+    public void printPerson2() {
+        System.out.println(this.getName() + " " + this.age + " " + this.getGender());
+    }
+
+    public void checkPerson7() {
+        rosterList
+                .stream()
+                .filter(
+                        p -> p.getGender() == Sex.MALE
+                        && p.getAge() >= 18
+                        && p.getAge() <= 25)
+                .map(p -> p.getAge())
+                .forEach(age -> System.out.println(age));
+    }
+
+    public void checkPerson6() {
+        processElements(
+                rosterList,
+                p -> p.getGender() == Sex.MALE
+                && p.getAge() >= 18
+                && p.getAge() <= 25,
+                p -> p.getAge(),
+                age -> System.out.println(age)
+        );
+    }
+
+    public static <X, Y> void processElements(
+            Iterable<X> source,
+            Predicate<X> tester,
+            Function<X, Y> mapper,
+            Consumer<Y> block) {
+        for (X p : source) {
+            if (tester.test(p)) {
+                Y data = mapper.apply(p);
+                block.accept(data);
+            }
+        }
+    }
+
     public void checkPerson5() {
         processPersons(
-                roster,
+                rosterList,
                 p -> p.getGender() == Sex.MALE
                 && p.getAge() >= 18
                 && p.getAge() <= 25,
@@ -72,7 +169,7 @@ public class Person {
 
     public void checkPerson4() {
         printPersonsWithPredicate(
-                roster,
+                rosterList,
                 p -> p.getGender() == Person.Sex.MALE
                         && p.getAge() >= 18
                         && p.getAge() <= 25
@@ -81,7 +178,7 @@ public class Person {
 
     public void addPerson(String name, int age, Sex gender) {
         Person p = new Person(name, age, gender);
-        roster.add(p);
+        rosterList.add(p);
     }
 
     public static void printPersonsWithPredicate(
@@ -99,7 +196,7 @@ public class Person {
 
     public void checkPerson3() {
         printPersons(
-                roster,
+                rosterList,
                 (Person p) -> p.getGender() == Sex.MALE
                 && p.getAge() >= 18
                 && p.getAge() <= 25
@@ -108,7 +205,7 @@ public class Person {
 
     public void checkPerson2() {
         printPersons(
-                roster,
+                rosterList,
                 new CheckPerson() {
                     public boolean test(Person p) {
                         return p.getGender() == Person.Sex.MALE
@@ -120,7 +217,7 @@ public class Person {
     }
 
     public void checkPerson() {
-        printPersons(roster, new CheckPersonEligibleForSelectiveService());
+        printPersons(rosterList, new CheckPersonEligibleForSelectiveService());
     }
 
     class CheckPersonEligibleForSelectiveService implements CheckPerson {
